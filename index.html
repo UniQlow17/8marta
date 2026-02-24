@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>С 8 Марта!</title>
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #feca57;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle, #fff0f5 0%, #ffc0cb 100%);
+            font-family: var(--font-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        /* UI Elements */
+        #header {
+            position: absolute;
+            top: 20px;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        h1 {
+            color: #d63384;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        p.subtitle {
+            color: #888;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        #progress-bar {
+            position: absolute;
+            bottom: 30px;
+            width: 300px;
+            height: 10px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--primary);
+            transition: width 0.5s ease;
+        }
+
+        /* Flower Animation */
+        .flower {
+            position: absolute;
+            font-size: 3rem;
+            animation: grow 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            cursor: pointer;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            transition: transform 0.2s;
+        }
+
+        .flower:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        @keyframes grow {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Wish Card Modal */
+        .wish-card {
+            position: absolute;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(214, 51, 132, 0.2);
+            color: #d63384;
+            font-weight: bold;
+            font-size: 1.2rem;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: floatUp 2s ease-out forwards;
+            white-space: nowrap;
+            z-index: 5;
+            text-align: center;
+            border: 2px solid #ffd1dc;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+            20% { opacity: 1; transform: translateY(0) scale(1); }
+            80% { opacity: 1; transform: translateY(-50px) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(0.9); }
+        }
+
+        /* Final Screen */
+        #final-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s;
+        }
+
+        #final-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .big-text {
+            font-size: 3rem;
+            color: #d63384;
+            text-align: center;
+            animation: pulse 2s infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Restart Button */
+        #restart-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s ease;
+            font-family: var(--font-main);
+            font-weight: bold;
+            pointer-events: auto; /* Важно: включаем клики для кнопки */
+            z-index: 101;
+        }
+
+        #restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        #restart-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Confetti */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h1>С 8 Марта! 🌷</h1>
+        <p class="subtitle">Кликай в любом месте, чтобы вырастить цветок</p>
+    </div>
+
+    <div id="progress-bar">
+        <div id="progress-fill"></div>
+    </div>
+
+    <div id="final-screen">
+        <div class="big-text">Ты — чудо! <br>✨ С праздником! ✨</div>
+        <button id="restart-btn">Продолжить 🌸</button>
+    </div>
+
+    <script>
+        // --- Конфигурация ---
+        const CONFIG = {
+            totalFlowers: 7,
+            flowers: ['🌷', '🌹', '🌺', '🌻', '🌼', '🌸', '💐'],
+            wishes: [
+                "Оставайся такой же лучезарной! ✨",
+                "Пусть каждый день приносит радость! 🎉",
+                "Ты вдохновляешь! 💡",
+                "Улыбка тебе очень идет! 😊",
+                "Мира, любви и гармонии! ❤️",
+                "Пусть сбываются самые смелые мечты! 🚀",
+                "Ты невероятна! 💃"
+            ]
+        };
+
+        // --- Состояние ---
+        let state = {
+            count: 0,
+            isFinished: false
+        };
+
+        // --- DOM Elements ---
+        const body = document.body;
+        const progressFill = document.getElementById('progress-fill');
+        const finalScreen = document.getElementById('final-screen');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // --- Логика ---
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function createFlower(x, y) {
+            if (state.isFinished) return;
+
+            const flowerEmoji = CONFIG.flowers[state.count % CONFIG.flowers.length];
+            const wishText = CONFIG.wishes[state.count % CONFIG.wishes.length];
+
+            const flower = document.createElement('div');
+            flower.classList.add('flower');
+            flower.textContent = flowerEmoji;
+            
+            const offsetX = getRandomInt(-20, 20);
+            const offsetY = getRandomInt(-20, 20);
+            
+            flower.style.left = `${x + offsetX}px`;
+            flower.style.top = `${y + offsetY}px`;
+
+            body.appendChild(flower);
+            showWish(x, y, wishText);
+
+            state.count++;
+            updateProgress();
+
+            if (state.count >= CONFIG.totalFlowers) {
+                finishGame();
+            }
+        }
+
+        function showWish(x, y, text) {
+            const wish = document.createElement('div');
+            wish.classList.add('wish-card');
+            wish.textContent = text;
+            wish.style.left = `${x - 50}px`;
+            wish.style.top = `${y - 80}px`;
+            body.appendChild(wish);
+
+            setTimeout(() => wish.remove(), 2000);
+        }
+
+        function updateProgress() {
+            const percentage = (state.count / CONFIG.totalFlowers) * 100;
+            progressFill.style.width = `${percentage}%`;
+        }
+
+        function finishGame() {
+            state.isFinished = true;
+            setTimeout(() => {
+                finalScreen.classList.add('active');
+                startConfetti();
+            }, 500);
+        }
+
+        // --- Сброс игры (Новая функция) ---
+        function resetGame() {
+            // Скрываем финальный экран
+            finalScreen.classList.remove('active');
+            
+            // Сбрасываем стейт
+            state.count = 0;
+            state.isFinished = false;
+            
+            // Сбрасываем прогресс бар
+            updateProgress();
+            
+            // Очищаем все цветы и пожелания со сцены
+            document.querySelectorAll('.flower, .wish-card').forEach(el => el.remove());
+            
+            // Останавливаем конфетти (очищаем контейнер финального экрана, кроме кнопки)
+            document.querySelectorAll('.confetti').forEach(el => el.remove());
+        }
+
+        // --- Конфетти ---
+        function startConfetti() {
+            const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff'];
+            
+            const interval = setInterval(() => {
+                if (!state.isFinished) {
+                    clearInterval(interval);
+                    return;
+                }
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                
+                finalScreen.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 4000);
+            }, 100);
+        }
+
+        // --- Event Listeners ---
+        body.addEventListener('click', (e) => {
+            if (e.target.closest('#final-screen') && !e.target.closest('#restart-btn')) return;
+            createFlower(e.clientX, e.clientY);
+        });
+
+        restartBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Чтобы клик не ушел в body и не создал цветок
+            resetGame();
+        });
+
+    </script>
+</body>
+</html>
